@@ -1,0 +1,109 @@
+C51 COMPILER V9.00   AD9850                                                                05/12/2014 07:14:47 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE AD9850
+OBJECT MODULE PLACED IN AD9850.OBJ
+COMPILER INVOKED BY: D:\keil c51\C51\BIN\C51.EXE AD9850.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /************************************************************
+   2          *                                       AD9850.c                                                                *
+   3          *                                       AD9850的驱动程序C文件                                   *
+   4          *                                       Copyright (c)2009---MJC                                 *
+   5          *                                       Free to Copy and Modify.                                *
+   6          *                                       Author:Worrior                                                  *
+   7          *                                       Date:2009-9-1                                                   *
+   8          ************************************************************/
+   9          
+  10          #include<intrins.h>
+  11          #include"AD9850.h"
+  12          
+  13          /********************
+  14          **函数:AD9850Reset
+  15          **功能:AD9850的复位函数
+  16          **作者:Worrior
+  17          **日期:2009-9-1
+  18          ********************/
+  19          void AD9850Reset(void)
+  20          {
+  21   1              AD9850WCLK = 0;
+  22   1              AD9850FQUD = 0;
+  23   1              AD9850ReSet = 0;
+  24   1              AD9850ReSet = 1;//复位脚置高电平(10个AD9850的时钟周期)
+  25   1      
+  26   1      
+  27   1              AD9850ReSet = 0;//复位完成,再拉低
+  28   1      }
+  29          
+  30          void delay2()
+  31          {
+  32   1              char x=25;
+  33   1              for(;x>0;x--) ;
+  34   1      }
+  35          /********************
+  36          **函数:AD9850SetFre
+  37          **功能:AD9850设定频率控制字函数
+  38          **参数:Fre,float型,要设定的频率,单位Hz
+  39          **作者:Worrior
+  40          **日期:2009-9-1
+  41          ********************/
+  42          void AD9850SetFre(float Fre)
+  43          {
+  44   1              unsigned long FTW = 0;//要写入的32位频率控制字(AD9850一次需要写入40位控制字)
+  45   1              unsigned char part1,part2,part3,part4;
+  46   1              if(Fre > 30000000)
+  47   1                      Fre = 30000000;
+  48   1              FTW = (unsigned long) (Fre * AD9850_125M);//计算频率控制字(公式:FTW=(2^32/fosc)*Fre)
+  49   1              /*以下将32位频率控制字分解*/
+  50   1              part1 = (unsigned char) (FTW>>24);//取32~25位
+  51   1              part2 = (unsigned char) (FTW>>16);//取24~17位
+  52   1              part3 = (unsigned char) (FTW>>8); //取16~9位
+  53   1              part4 = (unsigned char) (FTW);    //取8~1位
+  54   1              /*以上将32位频率控制字分解*/
+  55   1      
+C51 COMPILER V9.00   AD9850                                                                05/12/2014 07:14:47 PAGE 2   
+
+  56   1              AD9850FQUD = 0;
+  57   1              AD9850WCLK = 0;
+  58   1              AD9850DATAPORT = 0x00;//寄存器最高的八位只送0x00
+  59   1              AD9850WCLK = 1;//WCLK上升沿送数据
+  60   1              delay2();
+  61   1      
+  62   1              AD9850WCLK = 0;
+  63   1              AD9850DATAPORT = part1;
+  64   1              AD9850WCLK = 1;//WCLK上升沿送数据
+  65   1              delay2();
+  66   1      
+  67   1              AD9850WCLK = 0;
+  68   1              AD9850DATAPORT = part2;
+  69   1              AD9850WCLK = 1;//WCLK上升沿送数据
+  70   1              delay2();
+  71   1      
+  72   1              AD9850WCLK = 0;
+  73   1              AD9850DATAPORT = part3;
+  74   1              AD9850WCLK = 1;//WCLK上升沿送数据
+  75   1              delay2();
+  76   1      
+  77   1              AD9850WCLK = 0;
+  78   1              AD9850DATAPORT = part4;
+  79   1              AD9850WCLK = 1;//AD9850WCLK上升沿送数据
+  80   1              delay2();
+  81   1      
+  82   1              AD9850FQUD = 1;//AD9850FQUD上升沿将AD9850缓冲区的40位数据送入DDS Core
+  83   1      
+  84   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    188    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       8
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
